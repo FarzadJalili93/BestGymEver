@@ -5,8 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class GymSystem {    //När användaren anger antingen personnummer eller namn, försöker programmet matcha det med informationen i customer.txt. Om en matchning hittas,
-    // klassificeras medlemmen och en träningspost sparas i TrainerFile.txt.
+public class GymSystem {
 
     private static final String TRAINER_FILE_PATH = "src/TrainerFile.txt"; //relativ path för våra två konstanta strängar, dom innehåller filvägar till två textfiler
     private static final String CUSTOMER_FILE_PATH = "src/customer.txt";
@@ -28,8 +27,8 @@ public class GymSystem {    //När användaren anger antingen personnummer eller
         }
     }
 
-    private static void processCustomer(String input) throws IOException {   // tar emot användar input och läser innehållet från customer fil för att hitta en matchning.
-        try (BufferedReader reader = new BufferedReader(new FileReader(CUSTOMER_FILE_PATH))) {  //try-with-resources används för att säkerställa att filresurser stängs korrekt efter användning.
+    private static void processCustomer(String input) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(CUSTOMER_FILE_PATH))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(", ");
@@ -38,9 +37,12 @@ public class GymSystem {    //När användaren anger antingen personnummer eller
                     String name = parts[1];
                     LocalDate lastPaymentDate = parseDate(reader.readLine());
 
-                    if (personalNumber.equals(input) || name.equals(input)) {  // om en matchning hittas så används denna metod för att klacifiera medlem och spara det i trainerfile.
-                        classifyAndPrintMember(lastPaymentDate);
-                        saveTrainerRecord(name, personalNumber, LocalDate.now());
+                    if (personalNumber.equals(input) || name.equals(input)) {
+                        boolean isCurrentMember = classifyAndPrintMember(lastPaymentDate);
+
+                        if (isCurrentMember) {
+                            saveTrainerRecord(name, personalNumber, LocalDate.now());
+                        }
                         return;
                     }
                 } else {
@@ -48,10 +50,9 @@ public class GymSystem {    //När användaren anger antingen personnummer eller
                 }
             }
 
-            // om personen ej hittas i våran customer fil.
             System.out.println("Person not found in the customer file. Unauthorized access!");
         } catch (FileNotFoundException e) {
-            System.out.println("Error: Customer file not found. Please check the file path."); //specifik information om eventuella fel vid inläsning av fil.
+            System.out.println("Error: Customer file not found. Please check the file path.");
             e.printStackTrace();
         } catch (IOException e) {
             System.out.println("An error occurred while processing the customer file");
@@ -59,12 +60,16 @@ public class GymSystem {    //När användaren anger antingen personnummer eller
         }
     }
 
-    private static void classifyAndPrintMember(LocalDate lastPaymentDate) { //denna metod klassificiera en medlem som antingen current ellerr former member beroende på senast betalnignsdatum.
+
+    private static boolean classifyAndPrintMember(LocalDate lastPaymentDate) { //denna metod klassificiera en medlem som antingen current ellerr former member beroende på senast betalnignsdatum.
         LocalDate currentDate = LocalDate.now();
         if (currentDate.minusYears(1).isBefore(lastPaymentDate)) {
             System.out.println("Current member.");
+
+            return true;
         } else {
             System.out.println("Former member.");
+            return false;
         }
     }
 
